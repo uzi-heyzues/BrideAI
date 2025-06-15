@@ -38,11 +38,14 @@ app.post('/api/try-on', async (req, res) => {
             contentType: 'image/jpeg'
         });
 
-        // Append other form fields
+        // Append other form fields with enhanced parameters
         formData.append('garment_type', 'Full body');
-        formData.append('model_type', 'HD');
+        formData.append('model_type', 'HD');  // Using HD model for better quality
         formData.append('repaint_hands', 'true');
         formData.append('repaint_feet', 'true');
+        formData.append('repaint_other_garment', 'true');  // Enable full body repainting
+        formData.append('preserve_face', 'true');  // Try to preserve the model's face
+        formData.append('preserve_body', 'true');  // Try to preserve the model's body shape
 
         console.log('Sending request to HuHu AI API...');
         console.log('API Endpoint:', process.env.HUHU_API_ENDPOINT);
