@@ -35,9 +35,24 @@ app.post('/api/try-on', async (req, res) => {
             repaint_other_garment
         });
 
+        // Convert base64 to buffer
+        const modelImageBuffer = Buffer.from(image_model_file.split(',')[1], 'base64');
+        const garmentImageBuffer = Buffer.from(image_garment_file.split(',')[1], 'base64');
+
+        console.log('Image sizes:', {
+            modelImageSize: modelImageBuffer.length,
+            garmentImageSize: garmentImageBuffer.length
+        });
+
         const formData = new FormData();
-        formData.append('image_model_file', image_model_file);
-        formData.append('image_garment_file', image_garment_file);
+        formData.append('image_model_file', modelImageBuffer, {
+            filename: 'model.jpg',
+            contentType: 'image/jpeg'
+        });
+        formData.append('image_garment_file', garmentImageBuffer, {
+            filename: 'garment.jpg',
+            contentType: 'image/jpeg'
+        });
         formData.append('model_type', model_type || 'full_body');
         formData.append('garment_type', garment_type || 'dress');
         formData.append('repaint_hands', repaint_hands || 'true');
@@ -45,6 +60,9 @@ app.post('/api/try-on', async (req, res) => {
         formData.append('repaint_other_garment', repaint_other_garment || 'false');
 
         console.log('Sending request to HuHu AI API...');
+        console.log('API Key exists:', !!process.env.HUHU_API_KEY);
+        console.log('Form data headers:', formData.getHeaders());
+
         const response = await fetch('https://api-service.huhu.ai/tryon/v1', {
             method: 'POST',
             headers: {
@@ -55,17 +73,32 @@ app.post('/api/try-on', async (req, res) => {
         });
 
         console.log('API Response status:', response.status);
-        const data = await response.json();
-        console.log('API Response data:', data);
+        console.log('API Response headers:', response.headers);
+
+        const responseText = await response.text();
+        console.log('Raw API Response:', responseText);
+
+        let data;
+        try {
+            data = JSON.parse(responseText);
+        } catch (error) {
+            console.error('Error parsing API response:', error);
+            throw new Error(`Invalid API response format: ${responseText}`);
+        }
+
+        console.log('Parsed API Response:', data);
 
         if (!response.ok) {
-            throw new Error(`API request failed: ${data.error || response.status}`);
+            throw new Error(`API request failed: ${data.error || response.status} ${data.details || ''}`);
         }
 
         res.json(data);
     } catch (error) {
         console.error('Error in try-on endpoint:', error);
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ 
+            error: error.message,
+            details: error.stack
+        });
     }
 });
 
