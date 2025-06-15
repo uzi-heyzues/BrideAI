@@ -100,10 +100,11 @@ document.addEventListener('DOMContentLoaded', () => {
             tryOnButton.disabled = true;
             resultImage.innerHTML = '<p>Generating your virtual try-on...</p>';
 
-            // Fetch dress image
+            // Fetch dress image with cache-busting
             let dressImage;
             try {
-                const dressResponse = await fetch(`images/${selectedDress}.jpg`);
+                const timestamp = new Date().getTime();
+                const dressResponse = await fetch(`images/${selectedDress}.jpg?t=${timestamp}`);
                 if (!dressResponse.ok) {
                     throw new Error(`Failed to load dress image: ${dressResponse.status}`);
                 }
