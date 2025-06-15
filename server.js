@@ -26,14 +26,14 @@ app.post('/api/try-on', async (req, res) => {
         
         // Convert base64 to buffer and append to form data
         const modelImageBuffer = Buffer.from(req.body.image_model_file.split(',')[1], 'base64');
-        formData.append('input_image_model_file', modelImageBuffer, {
+        formData.append('image_model_file', modelImageBuffer, {
             filename: 'model.jpg',
             contentType: 'image/jpeg'
         });
 
         // Convert garment image from base64 to buffer
         const garmentImageBuffer = Buffer.from(req.body.image_garment_file.split(',')[1], 'base64');
-        formData.append('input_image_garment_file', garmentImageBuffer, {
+        formData.append('image_garment_file', garmentImageBuffer, {
             filename: 'garment.jpg',
             contentType: 'image/jpeg'
         });
