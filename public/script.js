@@ -5,6 +5,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const dressItems = document.querySelectorAll('.dress-item');
     const tryOnButton = document.getElementById('try-on-button');
     const resultImage = document.getElementById('result-image');
+    const modelType = document.getElementById('model-type');
+    const garmentType = document.getElementById('garment-type');
+    const repaintHands = document.getElementById('repaint-hands');
+    const repaintFeet = document.getElementById('repaint-feet');
+    const repaintOther = document.getElementById('repaint-other');
 
     let selectedDress = null;
     let uploadedPhoto = null;
@@ -128,6 +133,15 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Model image length:', modelBase64.length);
             console.log('Dress image length:', dressBase64.length);
 
+            // Get parameter values
+            const parameters = {
+                model_type: modelType.value,
+                garment_type: garmentType.value,
+                repaint_hands: repaintHands.checked.toString(),
+                repaint_feet: repaintFeet.checked.toString(),
+                repaint_other_garment: repaintOther.checked.toString()
+            };
+
             // Send request to our server
             console.log('Sending try-on request to server...');
             const response = await fetch('/api/try-on', {
@@ -137,7 +151,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 body: JSON.stringify({
                     image_model_file: modelBase64,
-                    image_garment_file: dressBase64
+                    image_garment_file: dressBase64,
+                    ...parameters
                 })
             });
 

@@ -21,86 +21,51 @@ app.get('/', (req, res) => {
 // Proxy endpoint for try-on
 app.post('/api/try-on', async (req, res) => {
     try {
-        console.log('Received try-on request');
+        const { image_model_file, image_garment_file, model_type, garment_type, repaint_hands, repaint_feet, repaint_other_garment } = req.body;
+
+        if (!image_model_file || !image_garment_file) {
+            return res.status(400).json({ error: 'Missing required images' });
+        }
+
+        console.log('Received try-on request with parameters:', {
+            model_type,
+            garment_type,
+            repaint_hands,
+            repaint_feet,
+            repaint_other_garment
+        });
+
         const formData = new FormData();
-        
-        // Convert base64 to buffer and append to form data
-        const modelImageBuffer = Buffer.from(req.body.image_model_file.split(',')[1], 'base64');
-        formData.append('image_model_file', modelImageBuffer, {
-            filename: 'model.jpg',
-            contentType: 'image/jpeg'
-        });
-
-        // Convert garment image from base64 to buffer
-        const garmentImageBuffer = Buffer.from(req.body.image_garment_file.split(',')[1], 'base64');
-        formData.append('image_garment_file', garmentImageBuffer, {
-            filename: 'garment.jpg',
-            contentType: 'image/jpeg'
-        });
-
-        // Append other form fields with enhanced parameters
-        formData.append('garment_type', 'Full body');
-        formData.append('model_type', 'HD');  // Using HD model for better quality
-        formData.append('repaint_hands', 'true');
-        formData.append('repaint_feet', 'true');
-        formData.append('repaint_other_garment', 'true');  // Enable full body repainting
-        formData.append('preserve_face', 'true');  // Try to preserve the model's face
-        formData.append('preserve_body', 'true');  // Try to preserve the model's body shape
+        formData.append('image_model_file', image_model_file);
+        formData.append('image_garment_file', image_garment_file);
+        formData.append('model_type', model_type || 'full_body');
+        formData.append('garment_type', garment_type || 'dress');
+        formData.append('repaint_hands', repaint_hands || 'true');
+        formData.append('repaint_feet', repaint_feet || 'true');
+        formData.append('repaint_other_garment', repaint_other_garment || 'false');
 
         console.log('Sending request to HuHu AI API...');
-        console.log('API Endpoint:', process.env.HUHU_API_ENDPOINT);
-        console.log('API Key exists:', !!process.env.HUHU_API_KEY);
-        
-        // Make request to HuHu AI API
-        const response = await fetch('https://api-service.huhu.ai/tryon/v1', {
+        const response = await fetch('https://api.huhu.ai/v1/try-on', {
             method: 'POST',
             headers: {
-                'x-api-key': process.env.HUHU_API_KEY
+                'Authorization': `Bearer ${process.env.HUHU_API_KEY}`,
+                ...formData.getHeaders()
             },
             body: formData
         });
 
-        console.log('API Response Status:', response.status);
-        console.log('API Response Headers:', response.headers);
+        console.log('API Response status:', response.status);
+        const data = await response.json();
+        console.log('API Response data:', data);
 
-        const responseText = await response.text();
-        console.log('Raw API Response:', responseText);
-
-        let data;
-        try {
-            data = JSON.parse(responseText);
-        } catch (error) {
-            console.error('Error parsing API response:', error);
-            return res.status(500).json({
-                error: 'Invalid API response format',
-                details: responseText
-            });
+        if (!response.ok) {
+            throw new Error(`API request failed: ${data.error || response.status}`);
         }
 
-        console.log('HuHu AI API response:', JSON.stringify(data, null, 2));
-
-        // Check if the response has the expected structure
-        if (!data || !data.job_id) {
-            console.error('Invalid API response structure:', data);
-            return res.status(500).json({ 
-                error: 'Invalid API response',
-                details: data 
-            });
-        }
-
-        // Return a standardized response
-        const responseData = {
-            status: 'initiated',
-            job_id: data.job_id
-        };
-        console.log('Sending response to client:', responseData);
-        res.json(responseData);
+        res.json(data);
     } catch (error) {
         console.error('Error in try-on endpoint:', error);
-        res.status(500).json({ 
-            error: 'Failed to process try-on request',
-            details: error.message 
-        });
+        res.status(500).json({ error: error.message });
     }
 });
 

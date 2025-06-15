@@ -47,6 +47,43 @@
         <section class="result-section">
             <h2>Your Virtual Try-On</h2>
             <div class="result-container">
+                <div class="parameter-controls">
+                    <div class="control-group">
+                        <label for="model-type">Model Type:</label>
+                        <select id="model-type" class="control-select">
+                            <option value="HD">HD (High Quality)</option>
+                            <option value="SD_V1">SD V1 (Standard)</option>
+                            <option value="SD_V2">SD V2 (Enhanced)</option>
+                            <option value="SD_V3">SD V3 (Latest)</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label for="garment-type">Garment Type:</label>
+                        <select id="garment-type" class="control-select">
+                            <option value="Full body">Full Body</option>
+                            <option value="Top">Top Only</option>
+                            <option value="Bottom">Bottom Only</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label>
+                            <input type="checkbox" id="repaint-hands" checked>
+                            Repaint Hands
+                        </label>
+                    </div>
+                    <div class="control-group">
+                        <label>
+                            <input type="checkbox" id="repaint-feet" checked>
+                            Repaint Feet
+                        </label>
+                    </div>
+                    <div class="control-group">
+                        <label>
+                            <input type="checkbox" id="repaint-other" checked>
+                            Repaint Other Garments
+                        </label>
+                    </div>
+                </div>
                 <div id="result-image" class="result-image">
                     <p>Your virtual try-on will appear here</p>
                 </div>
