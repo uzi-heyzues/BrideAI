@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let dressImage;
             try {
                 const timestamp = new Date().getTime();
-                const dressResponse = await fetch(`images/${selectedDress}.jpg?t=${timestamp}`);
+                const dressResponse = await fetch(`images/${selectedDress}.JPG?t=${timestamp}`);
                 if (!dressResponse.ok) {
                     throw new Error(`Failed to load dress image: ${dressResponse.status}`);
                 }
