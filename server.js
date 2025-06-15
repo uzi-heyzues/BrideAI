@@ -45,10 +45,10 @@ app.post('/api/try-on', async (req, res) => {
         formData.append('repaint_other_garment', repaint_other_garment || 'false');
 
         console.log('Sending request to HuHu AI API...');
-        const response = await fetch('https://api.huhu.ai/v1/try-on', {
+        const response = await fetch('https://api-service.huhu.ai/tryon/v1', {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${process.env.HUHU_API_KEY}`,
+                'x-api-key': process.env.HUHU_API_KEY,
                 ...formData.getHeaders()
             },
             body: formData
