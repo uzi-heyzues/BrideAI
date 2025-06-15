@@ -69,9 +69,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const poll = async () => {
             try {
                 const status = await checkJobStatus(jobId);
+                console.log('Job status response:', status);
                 
                 if (status.status === 'completed') {
-                    resultImage.innerHTML = `<img src="${status.result_url}" alt="Virtual Try-On Result">`;
+                    if (status.output && status.output[0] && status.output[0].image_url) {
+                        resultImage.innerHTML = `<img src="${status.output[0].image_url}" alt="Virtual Try-On Result">`;
+                    } else {
+                        throw new Error('No image URL in response');
+                    }
                     return;
                 } else if (status.status === 'failed') {
                     throw new Error('Job failed');
@@ -84,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     throw new Error('Job timeout');
                 }
             } catch (error) {
-                resultImage.innerHTML = '<p>Error generating try-on. Please try again.</p>';
+                resultImage.innerHTML = `<p>Error: ${error.message}</p>`;
                 console.error('Error:', error);
             }
         };
@@ -104,46 +109,66 @@ document.addEventListener('DOMContentLoaded', () => {
             let dressImage;
             try {
                 const timestamp = new Date().getTime();
+                console.log('Fetching dress image:', selectedDress);
                 const dressResponse = await fetch(`images/${selectedDress}.JPG?t=${timestamp}`);
                 if (!dressResponse.ok) {
                     throw new Error(`Failed to load dress image: ${dressResponse.status}`);
                 }
                 dressImage = await dressResponse.blob();
+                console.log('Dress image loaded successfully');
             } catch (error) {
                 console.error('Error loading dress image:', error);
                 throw new Error('Failed to load dress image');
             }
 
+            // Convert images to base64
+            const modelBase64 = uploadedPhoto;
+            const dressBase64 = await blobToBase64(dressImage);
+            
+            console.log('Model image length:', modelBase64.length);
+            console.log('Dress image length:', dressBase64.length);
+
             // Send request to our server
+            console.log('Sending try-on request to server...');
             const response = await fetch('/api/try-on', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    image_model_file: uploadedPhoto,
-                    image_garment_file: await blobToBase64(dressImage)
+                    image_model_file: modelBase64,
+                    image_garment_file: dressBase64
                 })
             });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                console.error('API request failed:', response.status, errorData);
-                throw new Error(`API request failed: ${errorData.error || response.status} ${errorData.details || ''}`);
+            console.log('Server response status:', response.status);
+            const responseText = await response.text();
+            console.log('Server response text:', responseText);
+
+            let data;
+            try {
+                data = JSON.parse(responseText);
+                console.log('Parsed server response:', data);
+            } catch (error) {
+                console.error('Error parsing server response:', error);
+                throw new Error('Invalid server response format');
             }
 
-            const data = await response.json();
-            console.log('API response:', data);
+            if (!response.ok) {
+                throw new Error(`API request failed: ${data.error || response.status} ${data.details || ''}`);
+            }
 
             if (data.status === 'initiated' && data.job_id) {
+                console.log('Try-on initiated with job ID:', data.job_id);
                 jobId = data.job_id;
                 await pollJobStatus(jobId);
             } else {
+                console.error('Invalid response data:', data);
                 throw new Error(`Invalid response: ${JSON.stringify(data)}`);
             }
         } catch (error) {
+            console.error('Error in try-on process:', error);
             resultImage.innerHTML = `<p>Error: ${error.message}</p>`;
-            console.error('Error:', error);
         } finally {
             tryOnButton.disabled = false;
         }
