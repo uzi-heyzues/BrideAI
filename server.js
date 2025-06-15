@@ -40,20 +40,19 @@ app.post('/api/try-on', async (req, res) => {
 
         // Append other form fields
         formData.append('garment_type', 'Full body');
-        
-        // Add webhook URL if needed
-        // formData.append('webhook', 'https://your-webhook-url.com');
+        formData.append('model_type', 'HD');
+        formData.append('repaint_hands', 'true');
+        formData.append('repaint_feet', 'true');
 
         console.log('Sending request to HuHu AI API...');
         console.log('API Endpoint:', process.env.HUHU_API_ENDPOINT);
         console.log('API Key exists:', !!process.env.HUHU_API_KEY);
         
         // Make request to HuHu AI API
-        const response = await fetch(process.env.HUHU_API_ENDPOINT, {
+        const response = await fetch('https://api-service.huhu.ai/tryon/v1', {
             method: 'POST',
             headers: {
-                'x-api-key': process.env.HUHU_API_KEY,
-                'Accept': 'application/json'
+                'x-api-key': process.env.HUHU_API_KEY
             },
             body: formData
         });
@@ -106,9 +105,9 @@ app.post('/api/try-on', async (req, res) => {
 app.get('/api/status/:jobId', async (req, res) => {
     try {
         console.log('Checking status for job:', req.params.jobId);
-        const response = await fetch(`${process.env.HUHU_API_ENDPOINT}/requests/${req.params.jobId}`, {
+        const response = await fetch(`https://api-service.huhu.ai/requests/v1?job_id=${req.params.jobId}`, {
             headers: {
-                'Authorization': `Bearer ${process.env.HUHU_API_KEY}`
+                'x-api-key': process.env.HUHU_API_KEY
             }
         });
 
