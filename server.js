@@ -56,10 +56,27 @@ app.post('/api/try-on', async (req, res) => {
 
         const data = await response.json();
         console.log('HuHu AI API response:', data);
-        res.json(data);
+
+        // Check if the response has the expected structure
+        if (!data || !data.job_id) {
+            console.error('Invalid API response:', data);
+            return res.status(500).json({ 
+                error: 'Invalid API response',
+                details: data 
+            });
+        }
+
+        // Return a standardized response
+        res.json({
+            status: 'initiated',
+            job_id: data.job_id
+        });
     } catch (error) {
         console.error('Error:', error);
-        res.status(500).json({ error: 'Failed to process try-on request' });
+        res.status(500).json({ 
+            error: 'Failed to process try-on request',
+            details: error.message 
+        });
     }
 });
 

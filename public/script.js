@@ -127,22 +127,22 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (!response.ok) {
-                const errorText = await response.text();
-                console.error('API request failed:', response.status, errorText);
-                throw new Error(`API request failed: ${response.status} ${errorText}`);
+                const errorData = await response.json();
+                console.error('API request failed:', response.status, errorData);
+                throw new Error(`API request failed: ${errorData.error || response.status} ${errorData.details || ''}`);
             }
 
             const data = await response.json();
             console.log('API response:', data);
 
-            if (data.status === 'initiated') {
+            if (data.status === 'initiated' && data.job_id) {
                 jobId = data.job_id;
                 await pollJobStatus(jobId);
             } else {
-                throw new Error(`Invalid response status: ${data.status}`);
+                throw new Error(`Invalid response: ${JSON.stringify(data)}`);
             }
         } catch (error) {
-            resultImage.innerHTML = '<p>Error generating try-on. Please try again.</p>';
+            resultImage.innerHTML = `<p>Error: ${error.message}</p>`;
             console.error('Error:', error);
         } finally {
             tryOnButton.disabled = false;
