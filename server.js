@@ -11,7 +11,7 @@ const port = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Serve static files
 app.get('/', (req, res) => {
@@ -82,6 +82,6 @@ app.get('/api/status/:jobId', async (req, res) => {
     }
 });
 
-app.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}`);
+app.listen(port, '0.0.0.0', () => {
+    console.log(`Server running on port ${port}`);
 }); 
